@@ -15,9 +15,9 @@
 
 ## script
 
-3章〜7章のサンプルスクリプトや参考情報をまとめています。
+本書の3章〜7章のサンプルスクリプトや参考情報をまとめています。
 
-`.gs`ファイルはGASスクリプトとしてそのままエディタにコピペして利用可能です。`.md`ファイルはオブジェクト例やリンクなどをまとめていますので、必要に応じてご参照ください。
+なお、`.gs`ファイルはGASスクリプトとしてそのままエディタにコピペして利用可能です。`.md`ファイルはオブジェクト例やリンクなどをまとめていますので、必要に応じてご参照ください。
 
 - [3章「LINEにメッセージを送ってみよう」](https://github.com/massa-potato/book-gas-linebot-guide/tree/main/script/03)
 - [4章「Webhookでイベントを受け取ろう」](https://github.com/massa-potato/book-gas-linebot-guide/tree/main/script/04)
