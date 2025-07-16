@@ -6,7 +6,7 @@
 
 ### manual
 
-本書の2章と8章にリンクを記載したWeb管理画面上での設定について、手順を解説したページを掲載しています。
+本書の2章と8章で解説するWeb管理画面上での設定について、手順をまとめたページを掲載しています。
 
 - 2章「LINE公式アカウントを準備しよう」
   - [2-1 LINE公式アカウントの作成と設定](https://github.com/massa-potato/book-gas-linebot-guide/blob/main/manual/2-1.md)
