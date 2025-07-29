@@ -1,5 +1,11 @@
 /*
-このファイルは、sample6-1からsample6-12をひとつのファイルにまとめたものです。
+6章「簡易版LINE Bot」
+このファイルは、6章で登場するスクリプト（sample6-1からsample6-12）をひとつのファイルにまとめたものです。
+
+このまま手元のスクリプトエディタへコピーし、【チャネルアクセストークン】を書き換えてLINE Botとして使用可能です。スクリプトは、スプレッドシートのコンテナバインドスクリプトとして作成してください。
+
+用意するスプレッドシートの中身はこちらです。
+https://docs.google.com/spreadsheets/d/1AuOCgiCMr3LCkMNeh6ee41IwvFWGtrJ3XwbHLOxDtxY/edit?usp=sharing
 */ 
 
 // 必要な情報

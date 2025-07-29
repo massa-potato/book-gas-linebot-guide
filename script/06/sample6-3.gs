@@ -1,8 +1,3 @@
-/**
-* 作業記録ボタンテンプレートを送信する関数
-* 
-* @param {string} replyToken - リプライトークン
-*/
 function sendSagyokirokuButton(replyToken) {
   const actions = [
     {

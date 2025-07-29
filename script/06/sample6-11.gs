@@ -1,11 +1,3 @@
-/**
-* ポストバックイベントを処理する関数
-* ポストバックデータに応じて以下の処理を実行:
-*  - 作業機選択後の処理
-*  - 確認選択後の処理（作業記録の登録または再入力）
-* 
-* @param {Object} event - イベントオブジェクト
-*/
 function handlePostbackEvent(event) {
   const replyToken = event.replyToken;
   const userId = event.source.userId;
