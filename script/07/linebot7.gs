@@ -1,11 +1,11 @@
 /*
-6章「簡易版LINE Bot」
-このファイルは、6章で登場するスクリプト（sample6-1からsample6-12）をひとつのファイルにまとめたものです。
+7章「機能追加版LINE Bot」
+このファイルは、6章のLINE Botに7章で追加・修正したスクリプト（sample7-1からsample7-11）を反映させて、ひとつのファイルにまとめたものです。
 
 このまま手元のスクリプトエディタへコピーし、【チャネルアクセストークン】を書き換えてLINE Botとして使用可能です。スクリプトは、スプレッドシートのコンテナバインドスクリプトとして作成してください。
 
 用意するスプレッドシートの中身はこちらです。
-https://docs.google.com/spreadsheets/d/1AuOCgiCMr3LCkMNeh6ee41IwvFWGtrJ3XwbHLOxDtxY/edit?usp=sharing
+https://docs.google.com/spreadsheets/d/1uhAJ0oiagWMxs5bnJz1DNAvl21lGJnHEIyGyEnAv6xg/edit?usp=sharing
 */ 
 
 // 必要な情報
@@ -14,6 +14,33 @@ const TOKEN = '【チャネルアクセストークン】';
 // シートの情報
 const USER_SHEET = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ユーザー情報');
 const KIROKU_SHEET = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('作業記録');
+
+
+/**
+* Messaging APIを使ってブロードキャストメッセージを送信する関数
+* 
+* @param {Array} messages - 送信するメッセージオブジェクトの配列
+*/
+function sendBroadcastMessage(messages) {
+  const url = 'https://api.line.me/v2/bot/message/broadcast';
+  const method = 'POST';
+
+  const headers = {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + TOKEN
+  };
+  const body = {
+      messages: messages
+  };
+
+  const options = {
+      method: method,
+      headers: headers,
+      payload: JSON.stringify(body)
+  };
+
+  UrlFetchApp.fetch(url, options);
+}
 
 
 /**
@@ -87,6 +114,71 @@ function sendSagyokirokuButton(replyToken) {
 
 
 /**
+* スタート時間選択用の日時ピッカーを送信する関数
+* LINEユーザーに対してスタート時間を入力するための日時ピッカーボタンを含むテンプレートメッセージを送信
+* 
+* @param {string} replyToken - リプライトークン
+*/
+function sendStartDatetimePicker(replyToken) {
+  const actions = [
+    {
+      type: 'datetimepicker',
+      label: '入力',
+      data: 'chooseStartTime',
+      mode: 'datetime'
+    }
+  ];
+
+  const messages = [
+    {
+      type: 'template',
+      altText: 'スタート時間を入力',
+      template: {
+        type: 'buttons',
+        text: 'スタート時間を入力してください。',
+        actions: actions
+      }
+    }
+  ];
+
+  sendReplyMessage(replyToken, messages);
+}
+
+
+/**
+* 終了時間選択用の日時ピッカーを送信する関数
+* LINEユーザーに対して作業終了時間を入力するための日時ピッカーボタンを含むテンプレートメッセージを送信
+* 
+* @param {string} replyToken - リプライトークン
+*/
+function sendEndDatetimePicker(replyToken) {
+
+  const actions = [
+    {
+      type: 'datetimepicker',
+      label: '入力',
+      data: 'chooseEndTime',
+      mode: 'datetime'
+    }
+  ];
+
+  const messages = [
+    {
+      type: 'template',
+      altText: '作業を終えた時間を入力',
+      template: {
+        type: 'buttons',
+        text: '作業を終えた時間を入力してください。',
+        actions: actions
+      }
+    }
+  ];
+
+  sendReplyMessage(replyToken, messages);
+}
+
+
+/**
  * 確認のクイックリプライを送信する関数
  * 
  * @param {string} replyToken - リプライトークン
@@ -130,13 +222,43 @@ function sendConfirmQuickReply(replyToken) {
 
 
 /**
+* Messaging APIを使用してユーザー名を取得する関数
+* 指定されたユーザーIDに対応するLINEユーザーの表示名を返す
+* 
+* @param {string} userId - LINEユーザーID
+* @return {string} ユーザーの表示名
+*/
+function getUserName(userId) {
+  const url = 'https://api.line.me/v2/bot/profile/' + userId;
+  const method = 'GET';
+
+  const headers = {
+      Authorization: 'Bearer ' + TOKEN
+  };
+
+  const params = {
+      method: method,
+      headers: headers
+  };
+
+  const res = UrlFetchApp.fetch(url, params);
+
+  const profile = JSON.parse(res.getContentText())
+  const userName = profile.displayName;
+
+  return userName;
+}
+
+
+/**
  * ユーザー情報をシートに追加する関数
- * 「ユーザー情報」シートにユーザーIDを追加する
+ * 「ユーザー情報」シートにユーザーIDとユーザー名を追加する
  * ただし、すでに同じユーザーIDが存在する場合は何も行わない
  * 
  * @param {string} userId - 追加するユーザーのID
+ * @param {string} userName - 追加するユーザーの名前
  */
-function setUserDataToUserSheet(userId) {
+function setUserDataToUserSheet(userId, userName) {
   const userData = USER_SHEET.getDataRange().getValues();
   userData.shift();
 
@@ -146,7 +268,7 @@ function setUserDataToUserSheet(userId) {
       } 
   }
 
-  USER_SHEET.appendRow([userId]);
+  USER_SHEET.appendRow([userId, userName]);
 }
 
 
@@ -202,12 +324,20 @@ function setDataToKirokuSheet(data) {
 * @param {Object} e - POSTリクエストのイベント情報が入ったオブジェクト
 */
 function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  const event = data.events[0];
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const event = data.events[0];
 
-  if(event.type === 'message') { handleMessageEvent(event) };
-  if(event.type === 'postback') { handlePostbackEvent(event) };
-  if(event.type === 'follow') { handleFollowEvent(event)};
+    outputLog('webhook受信OK');
+    outputLog(event);
+
+    if(event.type === 'message') { handleMessageEvent(event) };
+    if(event.type === 'postback') { handlePostbackEvent(event) };
+    if(event.type === 'follow') { handleFollowEvent(event)};
+
+  } catch(error) {
+    outputLog(`[ERROR] ${error.stack}`);
+  }
 }
 
 
@@ -229,6 +359,8 @@ function handleMessageEvent(event) {
 * ポストバックイベントを処理する関数
 * ポストバックデータに応じて以下の処理を実行:
 *  - 作業機選択後の処理
+*  - スタート時間入力後の処理
+*  - 終了時間入力後の処理
 *  - 確認選択後の処理（作業記録の登録または再入力）
 * 
 * @param {Object} event - イベントオブジェクト
@@ -242,11 +374,25 @@ function handlePostbackEvent(event) {
   // ①作業機を選択した後の処理
   if(category === 'tractor') {
 
-    setTempDataToUserSheet(userId, param, 2);
+    setTempDataToUserSheet(userId, param, 3);
+    sendStartDatetimePicker(replyToken);
+  }
+
+  // ②スタート時間を入力した後の処理
+  if(category === 'chooseStartTime') {
+
+    setTempDataToUserSheet(userId, event.postback.params.datetime, 4);
+    sendEndDatetimePicker(replyToken);
+  }
+
+  // ③終了時間を入力した後の処理
+  if(category === 'chooseEndTime') {
+
+    setTempDataToUserSheet(userId, event.postback.params.datetime, 5);
     sendConfirmQuickReply(replyToken);
   }
 
-  // ②確認クイックリプライを選択した後の処理
+  // ④確認クイックリプライを選択した後の処理
   if(category === 'confirm') {
     let messages;
 
@@ -273,5 +419,40 @@ function handlePostbackEvent(event) {
 */
 function handleFollowEvent(event) {
   const userId = event.source.userId;
-  setUserDataToUserSheet(userId);
+  const userName = getUserName(userId);
+  setUserDataToUserSheet(userId, userName);
+}
+
+
+/**
+* ログデータをスプレッドシートに出力する関数
+* 「ログシート」に現在のタイムスタンプとデータを新しい行として追加
+* 
+* @param {*} data - ログに記録するデータ（オブジェクト、配列、文字列など）
+*/
+function outputLog(data) {
+ const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ログ');
+
+ sheet.appendRow([
+   new Date(), 
+   JSON.stringify(data)
+ ]);
+}
+function outputLog(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('ログ');
+
+  sheet.appendRow([
+    new Date(), 
+    JSON.stringify(data)
+  ]);
+}
+
+
+/**
+* 作業記録のリマインダーメッセージを全ユーザーに送信する関数
+* 全ての登録ユーザーに対して作業記録の入力を促すメッセージをブロードキャスト送信
+*/
+function sendReminder() {
+  const messages = [{ type: 'text', text: '本日もおつかれさまでした。作業の記録を忘れずに。' }];
+  sendBroadcastMessage(messages);
 }
